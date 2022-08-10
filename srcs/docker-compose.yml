@@ -1,0 +1,49 @@
+version: "3"
+service:
+  application:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile
+    image: WordPress
+    container_name: inception_word
+    restart: unless-stopped
+    depends_on: nginx
+    volume:
+      - worddata:/home/svalenti/data/wd
+    networks:
+      - backend
+  webserver:
+    build: 
+      context: ./nginx
+      dockerfile: Dockerfile
+    image: nginx
+    container_name: inception_nginx
+    restart: unless-stopped
+    port:
+      - "433:433"
+    volume:
+      - worddata:/home/svalenti/data/wd
+    networks:
+      - frontend
+  db:
+    build:
+      context: mariadb
+      dockerfile: Dockerfile
+    image: mariaDB
+    container_name: inception_mariaDB
+    restart: unless-stopped
+    depends_on: WordPress
+    volume:
+      - dbdata:/home/svalenti/data/db
+    networks:
+      - backend
+  networks:
+    frontend:
+      driver: bridge
+    backend:
+      driver: bridge
+  volumes:
+    dbdata:
+      driver: local
+    worddata:
+      driver: local
