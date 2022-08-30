@@ -2,8 +2,8 @@ FROM alpine:3.15
 
 EXPOSE 3306
 
-RUN apt-get update && apt-get upgrade
-RUN apt-get install mariadb mariadb-client
+RUN apk update && apk upgrade
+RUN apk add mariadb mariadb-client
 
 COPY ./tools/conf.sh /tmp/conf.sh
 
