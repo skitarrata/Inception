@@ -1,47 +1,58 @@
-version: "3"
-services:
-  webserver:
-    build: 
-      context: requirements/nginx
-      dockerfile: Dockerfile
-    image: nginx
-    container_name: inception_nginx
-    restart: unless-stopped
-    ports:
-      - "433:433"
-    volumes:
-      - worddata:/home/svalenti/data/wd
-    networks:
-      - frontend
-  application:
-    build:
-      context: requirements/wordpress
-      dockerfile: Dockerfile
-    image: wordpress
-    container_name: inception_word
-    restart: unless-stopped
-    volumes:
-      - worddata:/home/svalenti/data/wd
-    networks:
-      - backend
-  db:
-    build:
-      context: requirements/mariadb
-      dockerfile: Dockerfile
-    image: mariadb
-    container_name: inception_mariadb
-    restart: unless-stopped
-    volumes:
-      - dbdata:/home/svalenti/data/db
-    networks:
-      - backend
+version: '3'
+
 networks:
-  frontend:
+  svalenti.42.fr:
     driver: bridge
-  backend:
-    driver: bridge
+
+services:
+  nginx:
+    build: requirements/nginx/
+    container_name: nginx
+    ports:
+      - "443:443"
+    volumes:
+      - "${HOME}/data/website:/var/www/html"
+    depends_on:
+      - wordpress
+    networks:
+      - svalenti.42.fr
+    restart: always
+
+  wordpress:
+    build: requirements/wordpress/
+    container_name: wordpress
+    ports:
+      - "9000:9000"
+    volumes:
+      - "${HOME}/data/website:/var/www/html"
+    depends_on:
+      - mariadb
+    networks:
+      - svalenti.42.fr
+    restart: always
+    env_file:
+      - .env
+
+  mariadb:
+    build: requirements/mariadb/
+    container_name: mariadb
+    ports:
+      - "3306:3306"
+    volumes:
+      - "${HOME}/data/mariadb:/var/lib/mysql"
+    networks:
+      - svalenti.42.fr
+    restart: always
+    env_file:
+      - .env
 volumes:
-  dbdata:
-    driver: local
-  worddata:
-    driver: local
+  db-data:
+    driver_opts:
+      type: none
+      device: /home/svalenti/data/db-data
+      o: bind
+  www-data:
+    driver_opts:
+      type: none
+      device: /home/svalenti/data/www-data
+      o: bind
